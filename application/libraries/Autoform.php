@@ -114,15 +114,26 @@ class Autoform {
       }
     }
     
+  	// remove ending [] from label for arrayed fields
+    if ($label->content) {
+    	$label->content = preg_replace('/^(.{0,})(\[\])$/', '$1', $label->content);
+    }
+    
     // add label object to field object 
     $field_obj->label = $label;
     
     // add id if it was not included
-    if ( ! isset($field_obj->id)) $field_obj->id = $field_obj->name;
+    if ( ! isset($field_obj->id)) {
+    	// set id the same as name
+    	$field_obj->id = $field_obj->name;
+	    // remove ending [] in id for arrayed fields
+	    $field_obj->id = preg_replace('/^(.{0,})(\[\])$/', '$1', $field_obj->id);
+    }
     // add value if it was not included
     if ( ! isset($field_obj->value)) $field_obj->value = false;
     
     // check if id is not explicitly set and if field with same id exists, make it uniue
+    $id = $field_obj->id;
     if ( ! isset($input['id'])) {
       $this->unique_id($field_obj);
     }
@@ -700,8 +711,14 @@ class Autoform {
    */
   private function unique_id(&$field_obj) {
     $id = $field_obj->id;
-    if ($field_obj->id == $field_obj->name && isset($this->fields->$id)) {
-      $field_obj->id = $field_obj->id.'_'.(sizeof($this->fields)+1);
+    if ($field_obj->id == $field_obj->name && isset($this->fields->$id) || isset($this->fields->$id)) {
+    	
+    	$i = 1;
+  		while (isset($this->fields->{$id.'_'.$i})) {
+  			$i++;
+  		}
+    
+      $field_obj->id = $id.'_'.$i;
     }
     return $field_obj;
   }
