@@ -119,6 +119,8 @@ class Autoform {
     
     // add id if it was not included
     if ( ! isset($field_obj->id)) $field_obj->id = $field_obj->name;
+    // add value if it was not included
+    if ( ! isset($field_obj->value)) $field_obj->value = false;
     
     // check if id is not explicitly set and if field with same id exists, make it uniue
     if ( ! isset($input['id'])) {
@@ -582,7 +584,7 @@ class Autoform {
   private function dropdown($field) {
     
     $name = $field->name;
-    $options = $field->options;
+    $options = (isset($field->options) ? $field->options : array());
     $extra = array();
     
     foreach ($field as $key=>$value) {
