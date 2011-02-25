@@ -73,6 +73,7 @@ class Autoform {
     // setup default label
     $label->content = ucwords(preg_replace("/[_-]/",' ', $input['name']));
     $label->for = (isset($input['id']) ? $input['id'] : url_title($input['name']));
+    $label->position = 'left';
     $label->extra = array();
     
     // set all field attributes
@@ -92,6 +93,9 @@ class Autoform {
             	break;
               case 'for':
               	$label->for = $value2;
+            	break;
+            	case'position':
+            		$label->position = $value2;
             	break;
               default:
               	$label->extra[$key2] = form_prep($value2);
@@ -202,6 +206,9 @@ class Autoform {
                 break;
                 case 'for':
                   $label->for = $value2;
+                break;
+                case'position':
+                	$label->position = $value2;
                 break;
                 default:
                   $label->extra[$key2] = form_prep($value2);
@@ -463,26 +470,72 @@ class Autoform {
       case 'select':
       case 'dropdown':
       	// add label
-      	if ($field->label->content!='') $output .= form_label($field->label->content, $field->id, $field->label->extra);
-        // generate field
-      	$output .= $this->dropdown($field);
+      	if ($field->label->content!='') {      		
+      		switch ($field->label->position) {
+      			case 'wrap':
+	      			$output .= form_label($field->label->content . $this->dropdown($field), $field->id, $field->label->extra);
+      			break;
+      			case 'right':
+      				$output .= $this->dropdown($field);
+      				$output .= form_label($field->label->content, $field->id, $field->label->extra);
+      			break;
+      			case 'left':
+      			default:
+	      			$output .= form_label($field->label->content, $field->id, $field->label->extra);
+      				$output .= $this->dropdown($field);
+      			break;
+    			}
+    		}
+    		else {
+    			$output .= $this->dropdown($field);
+    		}
       break;
 
       case 'checkbox':
       case 'radio':
       	// generate field
-      	$output .= $this->checked_input($field);
         // add label
-      	if ($field->label->content!='') $output .= form_label($field->label->content, $field->id, $field->label->extra);
+      	if ($field->label->content!='') {
+      		switch ($field->label->position) {
+      			case 'wrap':
+	      			$output .= form_label($field->label->content . $this->checked_input($field), $field->id, $field->label->extra);
+      			break;
+      			case 'right':
+      				$output .= $this->checked_input($field);
+      				$output .= form_label($field->label->content, $field->id, $field->label->extra);
+      			break;
+      			case 'left':
+      			default:
+	      			$output .= form_label($field->label->content, $field->id, $field->label->extra);
+      				$output .= $this->checked_input($field);
+      			break;
+    			}
+    		}
+    		else {
+	    		$output .= $this->checked_input($field);
+    		}
       break;
-      
       case 'textarea':
        	// add label if field is not type hidden, or label->text is blank
         if ($field->label->content!='' && $field->type!='hidden') {
-          $output .= form_label($field->label->content, $field->id, $field->label->extra);
+        	switch ($field->label->position) {
+      			case 'wrap':
+	      			$output .= form_label($field->label->content . $this->textarea($field), $field->id, $field->label->extra);
+      			break;
+      			case 'right':
+      				$output .= $this->textarea($field);
+      				$output .= form_label($field->label->content, $field->id, $field->label->extra);
+      			break;
+      			case 'left':
+      			default:
+	      			$output .= form_label($field->label->content, $field->id, $field->label->extra);
+      				$output .= $this->textarea($field);
+      			break;
+    			}
         }
-
-      	$output .= $this->textarea($field);
+        else {
+	    		$output .= $this->textarea($field);
+    		}
       break;
       
       case 'text':
@@ -490,9 +543,24 @@ class Autoform {
       default:
       	// add label if field is not type hidden, or label->text is blank
         if ($field->label->content!='' && $field->type!='hidden') {
-          $output .= form_label($field->label->content, $field->id, $field->label->extra);
+          switch ($field->label->position) {
+      			case 'wrap':
+	      			$output .= form_label($field->label->content . $this->input($field), $field->id, $field->label->extra);
+      			break;
+      			case 'right':
+      				$output .= $this->input($field);
+      				$output .= form_label($field->label->content, $field->id, $field->label->extra);
+      			break;
+      			case 'left':
+      			default:
+	      			$output .= form_label($field->label->content, $field->id, $field->label->extra);
+      				$output .= $this->input($field);
+      			break;
+    			}
         }
-      	$output .= $this->input($field);
+        else {
+	    		$output .= $this->input($field);
+    		}
       break;
     }
     
