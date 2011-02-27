@@ -15,7 +15,7 @@
  */
 class Autoform {
 
-  private $version = '3.3.6';
+  private $version = '3.3.8';
   private $CI;
   public $fields;
   public $buttons = '';
@@ -623,23 +623,23 @@ class Autoform {
   private function checked_input($field) {
     
     $data = array();
-	if ( ! isset($field->value)) $field->value = 1; // set default value
-	
-	// add class to label
-	if (isset($field->label->extra['class']) && !preg_match('/radio|checkbox/', $field->label->extra['class'])) { 
-		$field->label->extra['class'] .= ' '.$field->type;
-	}
-	elseif ( ! isset($field->label->extra['class'])) {
-		$field->label->extra['class'] = $field->type;
-	}
-
-	// add class to field
-	if (isset($field->class) && !preg_match('/radio|checkbox/', $field->class)) { 
-		$field->class .= ' '.$field->type;
-	}
-	elseif ( ! isset($field->class)) {
-		$field->class = $field->type;
-	}
+		if ( ! isset($field->value)) $field->value = 1; // set default value
+		
+		// add class to label
+		if (isset($field->label->extra['class']) && !preg_match('/radio|checkbox/', $field->label->extra['class'])) { 
+			$field->label->extra['class'] .= ' '.$field->type;
+		}
+		elseif ( ! isset($field->label->extra['class'])) {
+			$field->label->extra['class'] = $field->type;
+		}
+		
+		// add class to field
+		if (isset($field->class) && !preg_match('/radio|checkbox/', $field->class)) { 
+			$field->class .= ' '.$field->type;
+		}
+		elseif ( ! isset($field->class)) {
+			$field->class = $field->type;
+		}
     
     // work out attributes 
     foreach ($field as $key=>$value) {
@@ -648,10 +648,20 @@ class Autoform {
       }
     }
     
-    $method = 'form_'.$field->type; // form_checkbox, form_radio
+    // set checked status
     $set_method = 'set_'.$field->type; // set_checkbox, set_radio
+    $field->checked = $set_method($field->name, $field->value);
     
-    return $method($data, $field->value, $set_method($field->name, $field->value));
+    // set checked status on posted array (fieldname[])
+		$raw_name = preg_replace('/^(.{0,})(\[\])$/', '$1', $field->name); // remove ending []
+		if (is_array($this->CI->input->post($raw_name))) {
+			if (in_array($field->value, $this->CI->input->post($raw_name))) {
+				$field->checked = true;
+			}
+		}
+    
+    $method = 'form_'.$field->type; // form_checkbox, form_radio
+    return $method($data, $field->value, $field->checked);
   }
   
   /**
