@@ -8,14 +8,11 @@
  * 
  * Check here for updates: http://twitter.com/t0bz
  *
- * @version   3.3.6
  * @author    Toby Evans (@t0bz)
  * @license   http://creativecommons.org/licenses/by-sa/3.0/nz/
- * @since     Version 1.0
  */
 class Autoform {
 
-  private $version = '3.3.8';
   private $CI;
   public $fields;
   public $buttons = '';
@@ -649,8 +646,7 @@ class Autoform {
     }
     
     // set checked status
-    $set_method = 'set_'.$field->type; // set_checkbox, set_radio
-    $field->checked = $set_method($field->name, $field->value);
+    $field->checked = ($this->CI->input->post($field->name) == $field->value ? true : false);
     
     // set checked status on posted array (fieldname[])
 		$raw_name = preg_replace('/^(.{0,})(\[\])$/', '$1', $field->name); // remove ending []
@@ -680,6 +676,11 @@ class Autoform {
       if ($key!='name' && $key!='options' && $key != 'value' && $key != 'label' && $key!='type') {
         $extra[$key] = $value;
       }
+    }
+    
+    // set the value to posted value if none was specifically set
+    if (!$field->value) {
+    	$field->value = $this->CI->input->post($name);
     }
     
     return form_dropdown($name, $options, $field->value, $this->stringify($extra));
