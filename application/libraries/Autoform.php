@@ -8,11 +8,14 @@
  * 
  * Check here for updates: http://twitter.com/t0bz
  *
+ * @version   3.3.6
  * @author    Toby Evans (@t0bz)
  * @license   http://creativecommons.org/licenses/by-sa/3.0/nz/
+ * @since     Version 1.0
  */
 class Autoform {
 
+  private $version = '3.3.6';
   private $CI;
   public $fields;
   public $buttons = '';
@@ -70,7 +73,7 @@ class Autoform {
     // setup default label
     $label->content = ucwords(preg_replace("/[_-]/",' ', $input['name']));
     $label->for = (isset($input['id']) ? $input['id'] : url_title($input['name']));
-    $label->position = 'left';
+    $label->position = '';
     $label->extra = array();
     
     // set all field attributes
@@ -497,14 +500,14 @@ class Autoform {
       			case 'wrap':
 	      			$output .= form_label($field->label->content . $this->checked_input($field), $field->id, $field->label->extra);
       			break;
-      			case 'right':
-      				$output .= $this->checked_input($field);
-      				$output .= form_label($field->label->content, $field->id, $field->label->extra);
-      			break;
       			case 'left':
-      			default:
 	      			$output .= form_label($field->label->content, $field->id, $field->label->extra);
       				$output .= $this->checked_input($field);
+      			break;
+      			case 'right':
+      			default:
+      				$output .= $this->checked_input($field);
+      				$output .= form_label($field->label->content, $field->id, $field->label->extra);
       			break;
     			}
     		}
@@ -620,23 +623,23 @@ class Autoform {
   private function checked_input($field) {
     
     $data = array();
-		if ( ! isset($field->value)) $field->value = 1; // set default value
-		
-		// add class to label
-		if (isset($field->label->extra['class']) && !preg_match('/radio|checkbox/', $field->label->extra['class'])) { 
-			$field->label->extra['class'] .= ' '.$field->type;
-		}
-		elseif ( ! isset($field->label->extra['class'])) {
-			$field->label->extra['class'] = $field->type;
-		}
-		
-		// add class to field
-		if (isset($field->class) && !preg_match('/radio|checkbox/', $field->class)) { 
-			$field->class .= ' '.$field->type;
-		}
-		elseif ( ! isset($field->class)) {
-			$field->class = $field->type;
-		}
+	if ( ! isset($field->value)) $field->value = 1; // set default value
+	
+	// add class to label
+	if (isset($field->label->extra['class']) && !preg_match('/radio|checkbox/', $field->label->extra['class'])) { 
+		$field->label->extra['class'] .= ' '.$field->type;
+	}
+	elseif ( ! isset($field->label->extra['class'])) {
+		$field->label->extra['class'] = $field->type;
+	}
+
+	// add class to field
+	if (isset($field->class) && !preg_match('/radio|checkbox/', $field->class)) { 
+		$field->class .= ' '.$field->type;
+	}
+	elseif ( ! isset($field->class)) {
+		$field->class = $field->type;
+	}
     
     // work out attributes 
     foreach ($field as $key=>$value) {
@@ -645,19 +648,10 @@ class Autoform {
       }
     }
     
-    // set checked status
-    $field->checked = ($this->CI->input->post($field->name) == $field->value ? true : false);
-    
-    // set checked status on posted array (fieldname[])
-		$raw_name = preg_replace('/^(.{0,})(\[\])$/', '$1', $field->name); // remove ending []
-		if (is_array($this->CI->input->post($raw_name))) {
-			if (in_array($field->value, $this->CI->input->post($raw_name))) {
-				$field->checked = true;
-			}
-		}
-    
     $method = 'form_'.$field->type; // form_checkbox, form_radio
-    return $method($data, $field->value, $field->checked);
+    $set_method = 'set_'.$field->type; // set_checkbox, set_radio
+    
+    return $method($data, $field->value, $set_method($field->name, $field->value));
   }
   
   /**
@@ -676,11 +670,6 @@ class Autoform {
       if ($key!='name' && $key!='options' && $key != 'value' && $key != 'label' && $key!='type') {
         $extra[$key] = $value;
       }
-    }
-    
-    // set the value to posted value if none was specifically set
-    if (!$field->value) {
-    	$field->value = $this->CI->input->post($name);
     }
     
     return form_dropdown($name, $options, $field->value, $this->stringify($extra));
